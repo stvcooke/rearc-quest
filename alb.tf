@@ -5,7 +5,6 @@ resource "aws_eip" "alb_ip" {
   tags = var.tags
 }
 
-#tfsec:ignore:AWS005
 resource "aws_lb" "rearc_quest_alb" {
   name               = "rearc-quest-alb"
   internal           = false
@@ -23,6 +22,8 @@ resource "aws_lb" "rearc_quest_alb" {
 
   # checkov:skip=CKV_AWS_150:Allowing for easy delete
   tags = var.tags
+
+  depends_on = [ aws_s3_bucket_policy.access_logs_policy ]
 }
 
 resource "aws_security_group" "allow_tls" {
@@ -50,7 +51,6 @@ resource "aws_security_group" "allow_tls" {
   tags = var.tags
 }
 
-#tfsec:ignore:AWS077
 resource "aws_s3_bucket" "access_logs" {
   bucket = "rearc-quest-access-logs"
   acl    = "log-delivery-write"
@@ -70,4 +70,101 @@ resource "aws_s3_bucket" "access_logs" {
   # checkov:skip=CKV_AWS_144:Not enabling cross-region because we don't care so much about logs
   # checkov:skip=CKV_AWS_145:Not encrypting with KMS
   tags = var.tags
+}
+
+resource "aws_s3_bucket_policy" "access_logs_policy" {
+  bucket = aws_s3_bucket.access_logs.id
+  policy = data.aws_iam_policy_document.s3_bucket_lb_write.json
+}
+
+data "aws_iam_policy_document" "s3_bucket_lb_write" {
+  policy_id = "s3_bucket_lb_logs"
+
+  statement {
+    actions = [
+      "s3:PutObject",
+    ]
+    effect = "Allow"
+    resources = [
+      "${aws_s3_bucket.access_logs.arn}/*",
+    ]
+
+    principals {
+      identifiers = ["${data.aws_elb_service_account.main.arn}"]
+      type        = "AWS"
+    }
+  }
+
+  statement {
+    actions = [
+      "s3:PutObject"
+    ]
+    effect = "Allow"
+    resources = ["${aws_s3_bucket.access_logs.arn}/*"]
+    principals {
+      identifiers = ["delivery.logs.amazonaws.com"]
+      type        = "Service"
+    }
+  }
+
+
+  statement {
+    actions = [
+      "s3:GetBucketAcl"
+    ]
+    effect = "Allow"
+    resources = [ aws_s3_bucket.access_logs.arn ]
+    principals {
+      identifiers = ["delivery.logs.amazonaws.com"]
+      type        = "Service"
+    }
+  }
+}
+
+resource "aws_iam_server_certificate" "alb_cert" {
+  name_prefix      = "rearc-quest"
+  certificate_body = file("${path.module}/keys/cert.pem")
+  # tflint-ignore: aws_iam_server_certificate_invalid_private_key
+  private_key      = file("${path.module}/keys/key.pem")
+
+  tags = var.tags
+}
+
+resource "aws_lb_listener" "ec2_section" {
+  load_balancer_arn = aws_lb.rearc_quest_alb.arn
+  port              = "443"
+  protocol          = "HTTPS"
+  ssl_policy        = "ELBSecurityPolicy-2016-08"
+  certificate_arn   = aws_iam_server_certificate.alb_cert.arn
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.ec2_target_group.arn
+  }
+  # checkov:skip=CKV_AWS_103:Added TLS1.2 elsewhere
+}
+
+resource "aws_load_balancer_policy" "tls12" {
+  load_balancer_name = aws_lb.rearc_quest_alb.name
+  policy_name        = "rearc-quest-tls"
+  policy_type_name   = "SSLNegotiationPolicyType"
+
+  policy_attribute {
+    name  = "ECDHE-ECDSA-AES128-GCM-SHA256"
+    value = "true"
+  }
+
+  policy_attribute {
+    name  = "Protocol-TLSv1.2"
+    value = "true"
+  }
+}
+
+resource "aws_load_balancer_listener_policy" "tls12-listener-policy" {
+  load_balancer_name = aws_lb.rearc_quest_alb.name
+  load_balancer_port = 443
+
+  policy_names = [
+    aws_load_balancer_policy.tls12.policy_name,
+  ]
 }

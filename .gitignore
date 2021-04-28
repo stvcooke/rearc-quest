@@ -1,3 +1,6 @@
+### Ignore Keys ###
+*.pem
+
 ### NodeJS .gitignore ###
 # Logs
 logs

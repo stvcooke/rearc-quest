@@ -24,6 +24,8 @@ resource "aws_instance" "rearc_quest_ec2" {
   monitoring    = true
   ebs_optimized = true
 
+  iam_instance_profile = aws_iam_instance_profile.ec2_ssm_profile.id
+
   metadata_options {
     http_endpoint = "disabled"
   }
@@ -131,7 +133,7 @@ data "aws_iam_policy_document" "instance_assume_role_policy" {
 
     principals {
       type        = "Service"
-      identifiers = ["ec2.amazonaws.com"]
+      identifiers = ["ssm.amazonaws.com", "ec2.amazonaws.com"]
     }
   }
 }
@@ -140,4 +142,12 @@ resource "aws_iam_role" "ssm_role" {
   name                = "rearc-quest-ssm-role"
   assume_role_policy  = data.aws_iam_policy_document.instance_assume_role_policy.json
   managed_policy_arns = [data.aws_iam_policy.ssm_policy.arn]
+
+  tags = var.tags
+}
+
+resource "aws_ssm_activation" "foo" {
+  name               = "rearc_quest_ssm_activation"
+  iam_role           = aws_iam_role.ssm_role.id
+  registration_limit = "2"
 }

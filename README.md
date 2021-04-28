@@ -20,3 +20,10 @@ I will be deploying using the `rearc/quest` repository, not this one, since this
 #####   4) Loadbalancer - `http(s)://<ip_or_host>[:port]/loadbalanced`
 #####   5) Terraform and/or Cloudformation - we will test your submitted templates in our AWS account
 #####   6) TLS - `http(s)://<ip_or_host>[:port]/tls`
+
+### Key Generation
+I created keys with openssl:
+```
+mkdir keys
+openssl req -x509 -newkey rsa:4096 -keyout keys/key.pem -out keys/cert.pem -days 28 -nodes
+```
