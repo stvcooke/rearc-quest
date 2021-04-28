@@ -12,4 +12,3 @@ RUN npm install
 COPY src ./src/
 
 CMD ["node", "src/000.js"]
-# CMD ["sleep", "100s"]
