@@ -126,7 +126,7 @@ resource "aws_iam_server_certificate" "alb_cert" {
   certificate_body = file("${path.module}/keys/cert.pem")
   # tflint-ignore: aws_iam_server_certificate_invalid_private_key
   private_key      = file("${path.module}/keys/key.pem")
-  
+
   tags = var.tags
 }
 
@@ -141,6 +141,7 @@ resource "aws_lb_listener" "ec2_section" {
     type             = "forward"
     target_group_arn = aws_lb_target_group.ec2_target_group.arn
   }
+  # checkov:skip=CKV_AWS_103:Added TLS1.2 elsewhere
 }
 
 resource "aws_load_balancer_policy" "tls12" {
