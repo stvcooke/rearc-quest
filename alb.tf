@@ -23,6 +23,8 @@ resource "aws_lb" "rearc_quest_alb" {
 
   # checkov:skip=CKV_AWS_150:Allowing for easy delete
   tags = var.tags
+
+  depends_on = [ aws_s3_bucket_policy.access_logs_policy ]
 }
 
 resource "aws_security_group" "allow_tls" {
@@ -70,4 +72,74 @@ resource "aws_s3_bucket" "access_logs" {
   # checkov:skip=CKV_AWS_144:Not enabling cross-region because we don't care so much about logs
   # checkov:skip=CKV_AWS_145:Not encrypting with KMS
   tags = var.tags
+}
+
+resource "aws_s3_bucket_policy" "access_logs_policy" {
+  bucket = aws_s3_bucket.access_logs.id
+  policy = data.aws_iam_policy_document.s3_bucket_lb_write.json
+}
+
+data "aws_iam_policy_document" "s3_bucket_lb_write" {
+  policy_id = "s3_bucket_lb_logs"
+
+  statement {
+    actions = [
+      "s3:PutObject",
+    ]
+    effect = "Allow"
+    resources = [
+      "${aws_s3_bucket.access_logs.arn}/*",
+    ]
+
+    principals {
+      identifiers = ["${data.aws_elb_service_account.main.arn}"]
+      type        = "AWS"
+    }
+  }
+
+  statement {
+    actions = [
+      "s3:PutObject"
+    ]
+    effect = "Allow"
+    resources = ["${aws_s3_bucket.access_logs.arn}/*"]
+    principals {
+      identifiers = ["delivery.logs.amazonaws.com"]
+      type        = "Service"
+    }
+  }
+
+
+  statement {
+    actions = [
+      "s3:GetBucketAcl"
+    ]
+    effect = "Allow"
+    resources = [ aws_s3_bucket.access_logs.arn ]
+    principals {
+      identifiers = ["delivery.logs.amazonaws.com"]
+      type        = "Service"
+    }
+  }
+}
+
+resource "aws_iam_server_certificate" "alb_cert" {
+  name-prefix      = "rearc-quest"
+  certificate_body = file("keys/key.pem")
+  private_key      = file("keys/cert.pem")
+
+  tags = var.tags
+}
+
+resource "aws_lb_listener" "ec2_section" {
+  load_balancer_arn = aws_lb.rearc_quest_alb.arn
+  port              = "443"
+  protocol          = "HTTPS"
+  ssl_policy        = "ELBSecurityPolicy-2016-08"
+  certificate_arn   = aws_iam_server_certificate.alb_cert.arn
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.ec2_target_group.arn
+  }
 }
