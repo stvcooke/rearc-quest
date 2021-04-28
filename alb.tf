@@ -124,7 +124,7 @@ data "aws_iam_policy_document" "s3_bucket_lb_write" {
 resource "aws_iam_server_certificate" "alb_cert" {
   name_prefix      = "rearc-quest"
   certificate_body = file("${path.module}/keys/cert.pem")
-  private_key      = file("${path.module}/keys/key.pem")
+  private_key      = file("${path.module}/keys/key.pem") # tflint-ignore: aws_iam_server_certificate_invalid_private_key
 
   tags = var.tags
 }
