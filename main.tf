@@ -21,3 +21,5 @@ provider "aws" {
 data "aws_iam_policy" "ssm_policy" {
   arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
+
+data "aws_elb_service_account" "main" {}
