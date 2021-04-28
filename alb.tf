@@ -5,7 +5,6 @@ resource "aws_eip" "alb_ip" {
   tags = var.tags
 }
 
-#tfsec:ignore:AWS005
 resource "aws_lb" "rearc_quest_alb" {
   name               = "rearc-quest-alb"
   internal           = false
@@ -52,7 +51,6 @@ resource "aws_security_group" "allow_tls" {
   tags = var.tags
 }
 
-#tfsec:ignore:AWS077
 resource "aws_s3_bucket" "access_logs" {
   bucket = "rearc-quest-access-logs"
   acl    = "log-delivery-write"
@@ -141,5 +139,21 @@ resource "aws_lb_listener" "ec2_section" {
   default_action {
     type             = "forward"
     target_group_arn = aws_lb_target_group.ec2_target_group.arn
+  }
+}
+
+resource "aws_load_balancer_policy" "tls12" {
+  load_balancer_name = aws_lb.rearc_quest_alb.name
+  policy_name        = "rearc-quest-tls"
+  policy_type_name   = "SSLNegotiationPolicyType"
+
+  policy_attribute {
+    name  = "ECDHE-ECDSA-AES128-GCM-SHA256"
+    value = "true"
+  }
+
+  policy_attribute {
+    name  = "Protocol-TLSv1.2"
+    value = "true"
   }
 }
