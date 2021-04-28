@@ -124,9 +124,9 @@ data "aws_iam_policy_document" "s3_bucket_lb_write" {
 }
 
 resource "aws_iam_server_certificate" "alb_cert" {
-  name-prefix      = "rearc-quest"
-  certificate_body = file("keys/key.pem")
-  private_key      = file("keys/cert.pem")
+  name_prefix      = "rearc-quest"
+  certificate_body = file("keys/cert.pem")
+  private_key      = file("keys/key.pem")
 
   tags = var.tags
 }
