@@ -157,3 +157,12 @@ resource "aws_load_balancer_policy" "tls12" {
     value = "true"
   }
 }
+
+resource "aws_load_balancer_listener_policy" "tls12-listener-policy" {
+  load_balancer_name = aws_lb.rearc_quest_alb.name
+  load_balancer_port = 443
+
+  policy_names = [
+    aws_load_balancer_policy.tls12.policy_name,
+  ]
+}
