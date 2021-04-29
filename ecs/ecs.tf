@@ -67,8 +67,8 @@ resource "aws_ecs_service" "rearc_quest_pre_secret_service" {
   desired_count   = 1
 
   network_configuration {
-    subnets          = [ var.public_subnet_id, var.public_subnet2_id ]
-    assign_public_ip = true
+    subnets          = [ var.private_subnet_id ]
+    assign_public_ip = false
     security_groups  = [ aws_security_group.service_security_group.id ]
   }
 
@@ -100,73 +100,4 @@ data "aws_iam_policy_document" "assume_role_policy" {
 resource "aws_iam_role_policy_attachment" "ecsTaskExecutionRole_policy" {
   role       = aws_iam_role.ecsTaskExecutionRole.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
-}
-
-resource "aws_alb" "rearc_quest_ecs_lb" {
-  name               = "rearc-1uest-ecs-lb"
-  load_balancer_type = "application"
-  subnets = [
-    var.public_subnet_id,
-    var.public_subnet2_id
-  ]
-  security_groups = [ aws_security_group.load_balancer_security_group.id ]
-}
-
-resource "aws_security_group" "load_balancer_security_group" {
-  vpc_id = var.vpc_id
-
-  ingress {
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-}
-
-resource "aws_security_group" "service_security_group" {
-  vpc_id = var.vpc_id
-
-  ingress {
-    from_port = 0
-    to_port   = 0
-    protocol  = "-1"
-
-    security_groups = [ aws_security_group.load_balancer_security_group.id ]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-}
-
-resource "aws_lb_target_group" "ecs_target_group" {
-  name        = "rarc-quest-ecs-target-group"
-  port        = 80
-  protocol    = "HTTP"
-  target_type = "ip"
-  vpc_id      = var.vpc_id
-  health_check {
-    matcher = "200,301,302"
-    path = "/"
-  }
-}
-
-resource "aws_lb_listener" "ecs_listener" {
-  load_balancer_arn = aws_alb.rearc_quest_ecs_lb.arn
-  port              = "80"
-  protocol          = "HTTP"
-  default_action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.ecs_target_group.arn
-  }
 }

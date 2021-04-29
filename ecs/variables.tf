@@ -34,3 +34,8 @@ variable "vpc_id" {
 
   default = "vpc-04797b76d86d6e1bf"
 }
+
+variable "domain" {
+  type = string
+  default = "mentallysailing.com"
+}
