@@ -23,3 +23,8 @@ data "aws_iam_policy" "ssm_policy" {
 }
 
 data "aws_elb_service_account" "main" {}
+
+data "aws_route53_zone" "r53_zone" {
+  name         = "${var.domain}."
+  private_zone = false
+}

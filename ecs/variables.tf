@@ -2,6 +2,12 @@ variable "aws_region" {
   default = "us-east-2"
 }
 
+variable "prefix" {
+  type = string
+
+  default = "rearc-quest"
+}
+
 variable "tags" {
   type = map
 
@@ -33,4 +39,9 @@ variable "vpc_id" {
   type = string
 
   default = "vpc-04797b76d86d6e1bf"
+}
+
+variable "domain" {
+  type = string
+  default = "mentallysailing.com"
 }

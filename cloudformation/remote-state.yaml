@@ -1,0 +1,50 @@
+Outputs:
+  RemoteStateBucketName:
+    Value: !Ref RemoteStateBucket
+  RemoteStateTableName:
+    Value: !Ref RemoteStateDynamoDB
+
+Resources:
+
+  LoggingBucket:
+    Type: AWS::S3::Bucket
+    # DeletionPolicy: Retain
+    Properties:
+      BucketName: !Sub '${AWS::StackName}-tf-state-logging'
+      AccessControl: LogDeliveryWrite
+      VersioningConfiguration:
+        Status: Suspended
+      Tags:
+        - Key: "cost-center"
+          Value: "remote-state"
+
+  RemoteStateBucket:
+    Type: AWS::S3::Bucket
+    # DeletionPolicy: Retain
+    Properties:
+      BucketName: !Sub '${AWS::StackName}-tf-state'
+      AccessControl: Private
+      LoggingConfiguration:
+        DestinationBucketName: !Ref LoggingBucket
+        LogFilePrefix: !Sub '${AWS::StackName}-tf-state'
+      VersioningConfiguration:
+        Status: Enabled
+      Tags:
+        - Key: "cost-center"
+          Value: "remote-state"
+
+  RemoteStateDynamoDB:
+    Type: AWS::DynamoDB::Table
+    # DeletionPolicy: Retain
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: "LockID"
+          AttributeType: "S"
+      BillingMode: PAY_PER_REQUEST
+      KeySchema:
+        - AttributeName: "LockID"
+          KeyType: "HASH"
+      TableName: !Sub '${AWS::StackName}-tf-state-locking'
+      Tags:
+        - Key: "cost-center"
+          Value: "remote-state"

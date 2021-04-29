@@ -25,16 +25,16 @@ jobs:
         run: tflint --version
 
       - name: Run TFLint
-        run: tflint -f compact --disable-rule=aws_iam_server_certificate_invalid_private_key
+        run: tflint -f compact
 
-  checkov:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Checkov Scan
-        uses: bridgecrewio/checkov-action@master
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  # checkov:
+  #   runs-on: ubuntu-latest
+  #
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v2
+  #
+  #     - name: Checkov Scan
+  #       uses: bridgecrewio/checkov-action@master
+  #       env:
+  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
