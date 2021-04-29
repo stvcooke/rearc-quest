@@ -5,43 +5,39 @@ variable "aws_region" {
 variable "prefix" {
   type = string
 
-  default = "rearc-quest"
+  default = "stvcooke-quest"
 }
 
 variable "tags" {
   type = map
 
   default = {
-    cost-center = "rearc-quest"
-    owner = "scooke"
+    cost-center = "stvcooke-quest"
+    owner = "stvcooke"
   }
 }
 
 variable "private_subnet_id" {
   type = string
-
-  default = "subnet-0bc3bdf34d7ca72e1"
 }
 
 variable "public_subnet_id" {
   type = string
-
-  default = "subnet-002ac4fd689e3f61a"
 }
 
 variable "public_subnet2_id" {
   type = string
-
-  default = "subnet-0cfcb67013a4779d2"
 }
 
 variable "vpc_id" {
   type = string
-
-  default = "vpc-04797b76d86d6e1bf"
 }
 
 variable "domain" {
   type = string
-  default = "mentallysailing.com"
+}
+
+variable "image_tag" {
+  type    = string
+  default = "latest"
 }

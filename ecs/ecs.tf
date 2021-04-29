@@ -1,5 +1,5 @@
 resource "aws_ecr_repository" "repo" {
-  name                 = "rearc-quest-ecr"
+  name                 = "${var.prefix}-ecr"
   image_tag_mutability = "MUTABLE"
 
   image_scanning_configuration {
@@ -16,7 +16,7 @@ resource "aws_ecr_repository" "repo" {
 module "ecs" {
   source = "terraform-aws-modules/ecs/aws"
 
-  name = "rearc-quest-ecs"
+  name = "${var.prefix}-ecs"
 
   container_insights = true
 
@@ -32,12 +32,12 @@ module "ecs" {
 }
 
 resource "aws_ecs_task_definition" "rearc_quest_pre_secret_task" {
-  family                   = "rearc-quest-pre-secret-exec"
+  family                   = "${var.prefix}-pre-secret-exec"
   container_definitions    = <<DEFINITION
   [
     {
-      "name": "rearc-quest-pre-secret-exec",
-      "image": "${aws_ecr_repository.repo.repository_url}:exec",
+      "name": "${var.prefix}-pre-secret-exec",
+      "image": "${aws_ecr_repository.repo.repository_url}:${var.image_tag}",
       "essential": true,
       "portMappings": [
         {
@@ -60,7 +60,7 @@ DEFINITION
 }
 
 resource "aws_ecs_service" "rearc_quest_pre_secret_service" {
-  name            = "rearc-quest-pre-secret-exec"
+  name            = "${var.prefix}-pre-secret-exec"
   cluster         = module.ecs.ecs_cluster_id
   task_definition = aws_ecs_task_definition.rearc_quest_pre_secret_task.arn
   launch_type     = "FARGATE"
@@ -103,12 +103,12 @@ resource "aws_iam_role_policy_attachment" "ecsTaskExecutionRole_policy" {
 }
 
 resource "aws_ecs_task_definition" "rearc_quest_post_secret_task" {
-  family                   = "rearc-quest-post-secret"
+  family                   = "${var.prefix}-post-secret"
   container_definitions    = <<DEFINITION
   [
     {
-      "name": "rearc-quest-post-secret",
-      "image": "${aws_ecr_repository.repo.repository_url}:exec",
+      "name": "${var.prefix}-post-secret",
+      "image": "${aws_ecr_repository.repo.repository_url}:${var.image_tag}",
       "essential": true,
       "environment": [
         {
@@ -137,7 +137,7 @@ DEFINITION
 }
 
 resource "aws_ecs_service" "rearc_quest_post_secret_service" {
-  name            = "rearc-quest-post-secret"
+  name            = "${var.prefix}-post-secret"
   cluster         = module.ecs.ecs_cluster_id
   task_definition = aws_ecs_task_definition.rearc_quest_post_secret_task.arn
   launch_type     = "FARGATE"

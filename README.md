@@ -1,8 +1,6 @@
 # A quest in the clouds
 
-I have shortened the README to only contain the request and fulfillment criteria.
-
-I will be deploying using the `rearc/quest` repository, not this one, since this one has the vulnerability patched (so my tests would pass). There will probably be a short writeup on that included with the deliverables.
+I have shortened the README to only contain the request and fulfillment criteria, and some explanations on what I've done.
 
 ### Q. What do i have to do ?
 #####   1) Deploy the app in AWS and find the secret page. Use Linux 64-bit as your OS (Amazon Linux preferred)
@@ -21,9 +19,24 @@ I will be deploying using the `rearc/quest` repository, not this one, since this
 #####   5) Terraform and/or Cloudformation - we will test your submitted templates in our AWS account
 #####   6) TLS - `http(s)://<ip_or_host>[:port]/tls`
 
-### Key Generation
-I created keys with openssl:
-```
-mkdir keys
-openssl req -x509 -newkey rsa:4096 -keyout keys/key.pem -out keys/cert.pem -days 28 -nodes
-```
+## My attempts
+I had issues with step 1. You can find the attempts in the `ec2` folder. I'm not very proud of it, but it's there. I've always had issues with user data.
+
+As for the rest of the steps, I containerized the application using the `Dockerfile` found in the root of the repository, then created the ECR repository and uploaded it there. Then I finished writing the rest of the Terraform code by creating an ECS cluster, some tasks and services, and then throwing a load balancer in front of it. I never got the "Successful Docker" message because, I assume, I didn't run it on Docker on an ec2 instance.
+
+There's going to be some failing ECS tasks on first deployment due to no image being uploaded. What I'd normally do instead is put it in another repository, such as the `stvcooke/rearc-quest-infra` one I tried to create, or create it with CloudFormation like I did the remote state and the vpc. I abandoned that repository, to be discussed soon.
+
+In the `cloudformation` directory, you'll find the remote state and vpc cfn files. The remote state outputs will need to be hardcoded in the backend configuration in `ecs/main.tf`. I did try to put these in as variables, but Terraform didn't appreciate that, understandably. If this were in some capacity that I was able to devote more time to, I'd use a template file set up by the CI/CD pipeline to configure the backend to be a bit more dynamic. You will also find an `empty-stack.yml` which creates no resources. I use it to simplify CloudFormation stack creation.
+
+Finally, the failed `stvcooke/rearc-quest-infra` repository. A few years back, I read about a terraform deployment technique when I first learned about Github Actions that revolved around a minimal permissions user deploying a `terraform plan` output to an s3 bucket. This would trigger a lambda function that picked up the plan, and with a lot more permissions, execute the plan. There was typically enough space found in the lambda's `/tmp` to install Terraform, download the plan, and execute it. I took this opportunity to really check in on this.
+
+The problem was, Terraform had changed and now needed to have the source code in order to do a `terraform init` to install the modules and run the `terraform apply`. Hence, the failed repository. It's abandoned, and will be archived after we talk about it. It has three major parts:
+- `src/service.py` which is the python3 version of the code used way back.
+- `tf-executor` which would set up the s3 trigger and lambda.
+- `tf-planner` which creates the s3 drop bucket and iam roles for the github action user.
+I will put the github workflow using the `tf-planner` iam user in there under an appropriately named directory, probably `workflows` and not under the usual `.github` directory that would trigger the actions.
+
+## Lessons learned
+1. Making security unobtrusive is hard. I tried implementing checkov into the github actions, and it really slowed things down. There are definite changes I'd make to the Github Action that uses it. A major selling point for me was `checkov` could use the `terraform plan` output to get specific on what would be a security vulnerability, but the action doesn't allow for that. It's just static code analysis. Requiring all checks to pass, but some of them just not being ideal (such as versioning a log bucket) really slowed things down as I added in exceptions just to make that type of stuff pass.
+1. A custom terraform deployer is more effort than I first thought. It would be ideal to contain all permissions inside AWS, but I think I'd want to attach an few GB EBS volume to the lambda in order to download everything and `terraform init`, and that would probably slow it down a lot.
+1. I thought there was a security vulnerability as found with `njsscan`, and tried replacing the `exec()` calls with `execFile()`, but that broke the program. I then tried to pass in some phony headers to my localhost:3000 but was never able to get some execution, probably due to not figuring out how to escape quotation marks adequately enough using `curl`.
