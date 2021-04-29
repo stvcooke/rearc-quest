@@ -1,5 +1,5 @@
 resource "aws_alb" "rearc_quest_ecs_lb" {
-  name               = "rearc-quest-ecs-lb"
+  name               = "${var.prefix}-ecs-lb"
   load_balancer_type = "application"
   subnets = [
     var.public_subnet_id,
@@ -9,7 +9,7 @@ resource "aws_alb" "rearc_quest_ecs_lb" {
 
   access_logs {
     bucket  = aws_s3_bucket.access_logs.id
-    prefix  = "rearc-quest"
+    prefix  = "${var.prefix}"
     enabled = true
   }
 
@@ -61,7 +61,7 @@ resource "aws_security_group" "service_security_group" {
 }
 
 resource "aws_lb_target_group" "ecs_target_group" {
-  name        = "rearc-quest-ecs-target-group"
+  name        = "${var.prefix}-ecs-target-group"
   port        = 80
   protocol    = "HTTP"
   target_type = "ip"
@@ -85,7 +85,7 @@ resource "aws_lb_listener" "ecs_listener" {
 }
 
 resource "aws_lb_target_group" "ecs_tls_target_group" {
-  name        = "rearc-quest-ecs-tls-target-group"
+  name        = "${var.prefix}-ecs-tls-target-group"
   port        = 443
   protocol    = "HTTP"
   target_type = "ip"
@@ -110,7 +110,7 @@ resource "aws_lb_listener" "ecs_tls_listener" {
 }
 
 resource "aws_s3_bucket" "access_logs" {
-  bucket = "rearc-quest-access-logs"
+  bucket = "${var.prefix}-access-logs"
   acl    = "log-delivery-write"
 
   server_side_encryption_configuration {
