@@ -16,3 +16,5 @@ public_subnet2_id = "subnet-0cfcb67013a4779d2"
 vpc_id = "vpc-04797b76d86d6e1bf"
 
 domain = "mentallysailing.com"
+
+image_tag = "exec"

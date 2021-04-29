@@ -37,7 +37,7 @@ resource "aws_ecs_task_definition" "rearc_quest_pre_secret_task" {
   [
     {
       "name": "${var.prefix}-pre-secret-exec",
-      "image": "${aws_ecr_repository.repo.repository_url}:exec",
+      "image": "${aws_ecr_repository.repo.repository_url}:${var.image_tag}",
       "essential": true,
       "portMappings": [
         {
@@ -108,7 +108,7 @@ resource "aws_ecs_task_definition" "rearc_quest_post_secret_task" {
   [
     {
       "name": "${var.prefix}-post-secret",
-      "image": "${aws_ecr_repository.repo.repository_url}:exec",
+      "image": "${aws_ecr_repository.repo.repository_url}:${var.image_tag}",
       "essential": true,
       "environment": [
         {

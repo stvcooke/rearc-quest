@@ -13,7 +13,7 @@ variable "tags" {
 
   default = {
     cost-center = "stvcooke-quest"
-    owner = "scooke"
+    owner = "stvcooke"
   }
 }
 
@@ -35,4 +35,9 @@ variable "vpc_id" {
 
 variable "domain" {
   type = string
+}
+
+variable "image_tag" {
+  type    = string
+  default = "latest"
 }
