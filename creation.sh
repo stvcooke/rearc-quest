@@ -9,46 +9,51 @@ REGION="us-east-2"
 STATE_BUCKET="${STACK_PREFIX}-remote-state-tf-state"
 STATE_DYNAMODB="${STACK_PREFIX}-remote-state-tf-state-locking"
 
+# create empty stacks to avoid weird rollback errors
 /usr/bin/aws cloudformation create-stack \
---stack-name "${STACK_PREFIX}-vpc" \
---template-body file://cloudformation/empty-stack.yaml \
---region $REGION
-
-/usr/bin/aws cloudformation create-stack \
---stack-name "${STACK_PREFIX}-ecr" \
---template-body file://cloudformation/empty-stack.yaml \
---region $REGION
+  --stack-name "${STACK_PREFIX}-vpc" \
+  --template-body file://cloudformation/empty-stack.yaml \
+  --region $REGION
 
 /usr/bin/aws cloudformation create-stack \
---stack-name "${STACK_PREFIX}-remote-state" \
---template-body file://cloudformation/empty-stack.yaml \
---region $REGION
+  --stack-name "${STACK_PREFIX}-ecr" \
+  --template-body file://cloudformation/empty-stack.yaml \
+  --region $REGION
+
+/usr/bin/aws cloudformation create-stack \
+  --stack-name "${STACK_PREFIX}-remote-state" \
+  --template-body file://cloudformation/empty-stack.yaml \
+  --region $REGION
+
+# wait for stack creation to complete before updating
+/usr/bin/aws cloudformation wait stack-create-complete \
+  --stack-name "${STACK_PREFIX}-ecr" \
+  --region $REGION
+/usr/bin/aws cloudformation update-stack \
+  --stack-name "${STACK_PREFIX}-ecr" \
+  --template-body file://cloudformation/ecr.yaml \
+  --region $REGION \
+  --parameters ParameterKey=repositoryName,ParameterValue=$STACK_PREFIX
 
 /usr/bin/aws cloudformation wait stack-create-complete \
---stack-name "${STACK_PREFIX}-ecr"
+  --stack-name "${STACK_PREFIX}-vpc" \
+  --region $REGION
 /usr/bin/aws cloudformation update-stack \
---stack-name "${STACK_PREFIX}-ecr" \
---template-body file://cloudformation/ecr.yaml \
---region $REGION \
---parameters ParameterKey=repositoryName,ParameterValue=$STACK_PREFIX
+  --stack-name "${STACK_PREFIX}-vpc" \
+  --template-body file://cloudformation/vpc.yaml \
+  --region $REGION
 
 /usr/bin/aws cloudformation wait stack-create-complete \
---stack-name "${STACK_PREFIX}-vpc"
+  --stack-name "${STACK_PREFIX}-remote-state" \
+  --region $REGION
 /usr/bin/aws cloudformation update-stack \
---stack-name "${STACK_PREFIX}-vpc" \
---template-body file://cloudformation/vpc.yaml \
---region $REGION
-
-/usr/bin/aws cloudformation wait stack-create-complete \
---stack-name "${STACK_PREFIX}-remote-state"
-/usr/bin/aws cloudformation update-stack \
---stack-name "${STACK_PREFIX}-remote-state" \
---template-body file://cloudformation/remote-state.yaml \
---region $REGION
+  --stack-name "${STACK_PREFIX}-remote-state" \
+  --template-body file://cloudformation/remote-state.yaml \
+  --region $REGION
 
 /usr/bin/aws cloudformation wait stack-update-complete \
---stack-name "${STACK_PREFIX}-ecr" \
---region $REGION
+  --stack-name "${STACK_PREFIX}-ecr" \
+  --region $REGION
 # Store the repository url from the output of ecr.yaml
 ECR_REPO=$( \
   /usr/bin/aws cloudformation describe-stacks \
@@ -71,6 +76,14 @@ cp ecs/main.tf ecs_main.tf.bk
 sed -i "10s/.*/    bucket = \"${STATE_BUCKET}\"/" ecs/main.tf
 sed -i "12s/.*/    dynamodb_table = \"${STATE_DYNAMODB}\"/" ecs/main.tf
 sed -i "13s/.*/    region = \"${REGION}\"/" ecs/main.tf
+
+# ensure vpc and remote state are ready
+/usr/bin/aws cloudformation wait stack-update-complete \
+  --stack-name "${STACK_PREFIX}-remote-state" \
+  --region $REGION
+/usr/bin/aws cloudformation wait stack-update-complete \
+  --stack-name "${STACK_PREFIX}-vpc" \
+  --region $REGION
 
 cd ecs
 terraform init
