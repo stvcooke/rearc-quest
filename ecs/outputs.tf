@@ -10,6 +10,10 @@ output "ecs_alb_dns" {
   value = aws_alb.rearc_quest_ecs_lb.dns_name
 }
 
+output "access_logs_bucket" {
+  value = aws_s3_bucket.access_logs.id
+}
+
 output "http_url" {
   value = "http://${aws_route53_record.record.fqdn}"
 }
