@@ -2,14 +2,14 @@ resource "aws_alb" "rearc_quest_ecs_lb" {
   name               = "${var.prefix}-ecs-lb"
   load_balancer_type = "application"
   subnets = [
-    var.public_subnet_id,
-    var.public_subnet2_id
+    data.aws_subnet.public_subnet.id,
+    data.aws_subnet.public_subnet2.id
   ]
   security_groups = [ aws_security_group.load_balancer_security_group.id ]
 
   access_logs {
     bucket  = aws_s3_bucket.access_logs.id
-    prefix  = "${var.prefix}"
+    prefix  = var.prefix
     enabled = true
   }
 
@@ -17,7 +17,7 @@ resource "aws_alb" "rearc_quest_ecs_lb" {
 }
 
 resource "aws_security_group" "load_balancer_security_group" {
-  vpc_id = var.vpc_id
+  vpc_id = data.aws_vpc.vpc.id
 
   ingress {
     from_port   = 80
@@ -42,7 +42,7 @@ resource "aws_security_group" "load_balancer_security_group" {
 }
 
 resource "aws_security_group" "service_security_group" {
-  vpc_id = var.vpc_id
+  vpc_id = data.aws_vpc.vpc.id
 
   ingress {
     from_port = 0
@@ -61,11 +61,11 @@ resource "aws_security_group" "service_security_group" {
 }
 
 resource "aws_lb_target_group" "ecs_target_group" {
-  name        = "${var.prefix}-ecs-target-group"
+  name        = "${var.prefix}-ecs-tg"
   port        = 80
   protocol    = "HTTP"
   target_type = "ip"
-  vpc_id      = var.vpc_id
+  vpc_id      = data.aws_vpc.vpc.id
 
   health_check {
     matcher = "200,301,302"
@@ -85,11 +85,11 @@ resource "aws_lb_listener" "ecs_listener" {
 }
 
 resource "aws_lb_target_group" "ecs_tls_target_group" {
-  name        = "${var.prefix}-ecs-tls-target-group"
+  name        = "${var.prefix}-ecs-tls-tg"
   port        = 443
   protocol    = "HTTP"
   target_type = "ip"
-  vpc_id      = var.vpc_id
+  vpc_id      = data.aws_vpc.vpc.id
 
   health_check {
     matcher = "200,301,302"

@@ -16,12 +16,3 @@ variable "tags" {
     owner = "stvcooke"
   }
 }
-
-variable "domain" {
-  type = string
-}
-
-variable "image_tag" {
-  type    = string
-  default = "latest"
-}

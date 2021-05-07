@@ -1,18 +1,3 @@
-resource "aws_ecr_repository" "repo" {
-  name                 = "${var.prefix}-ecr"
-  image_tag_mutability = "MUTABLE"
-
-  image_scanning_configuration {
-    scan_on_push = true
-  }
-
-  encryption_configuration {
-    encryption_type = "AES256"
-  }
-
-  tags = var.tags
-}
-
 module "ecs" {
   source = "terraform-aws-modules/ecs/aws"
 
@@ -32,12 +17,12 @@ module "ecs" {
 }
 
 resource "aws_ecs_task_definition" "rearc_quest_pre_secret_task" {
-  family                   = "${var.prefix}-pre-secret-exec"
+  family                   = "${var.prefix}-pre-secret"
   container_definitions    = <<DEFINITION
   [
     {
-      "name": "${var.prefix}-pre-secret-exec",
-      "image": "${aws_ecr_repository.repo.repository_url}:${var.image_tag}",
+      "name": "${var.prefix}-pre-secret",
+      "image": "${data.aws_ecr_repository.repo.repository_url}:${var.image_tag}",
       "essential": true,
       "portMappings": [
         {
@@ -60,14 +45,14 @@ DEFINITION
 }
 
 resource "aws_ecs_service" "rearc_quest_pre_secret_service" {
-  name            = "${var.prefix}-pre-secret-exec"
+  name            = "${var.prefix}-pre-secret"
   cluster         = module.ecs.ecs_cluster_id
   task_definition = aws_ecs_task_definition.rearc_quest_pre_secret_task.arn
   launch_type     = "FARGATE"
   desired_count   = 1
 
   network_configuration {
-    subnets          = [ var.private_subnet_id ]
+    subnets          = [ data.aws_subnet.private_subnet.id ]
     assign_public_ip = false
     security_groups  = [ aws_security_group.service_security_group.id ]
   }
@@ -82,7 +67,7 @@ resource "aws_ecs_service" "rearc_quest_pre_secret_service" {
 }
 
 resource "aws_iam_role" "ecsTaskExecutionRole" {
-  name               = "ecsTaskExecutionRole"
+  name_prefix        = var.prefix
   assume_role_policy = data.aws_iam_policy_document.assume_role_policy.json
 }
 
@@ -108,7 +93,7 @@ resource "aws_ecs_task_definition" "rearc_quest_post_secret_task" {
   [
     {
       "name": "${var.prefix}-post-secret",
-      "image": "${aws_ecr_repository.repo.repository_url}:${var.image_tag}",
+      "image": "${data.aws_ecr_repository.repo.repository_url}:${var.image_tag}",
       "essential": true,
       "environment": [
         {
@@ -144,7 +129,7 @@ resource "aws_ecs_service" "rearc_quest_post_secret_service" {
   desired_count   = 1
 
   network_configuration {
-    subnets          = [ var.private_subnet_id ]
+    subnets          = [ data.aws_subnet.private_subnet.id ]
     assign_public_ip = false
     security_groups  = [ aws_security_group.service_security_group.id ]
   }

@@ -1,0 +1,19 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Parameters:
+  repositoryName:
+    Type: String
+
+Outputs:
+  RepoUrl:
+    Value: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${Repo}"
+
+Resources:
+  Repo:
+    Type: AWS::ECR::Repository
+    Properties:
+      ImageTagMutability: "IMMUTABLE"
+      RepositoryName: !Ref repositoryName
+      Tags:
+        - Key: "cost-center"
+          Value: "rearc-quest"
