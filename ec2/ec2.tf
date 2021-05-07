@@ -139,7 +139,7 @@ data "aws_iam_policy_document" "instance_assume_role_policy" {
 }
 
 resource "aws_iam_role" "ssm_role" {
-  name                = "rearc-quest-ssm-role"
+  name_prefix         = var.prefix
   assume_role_policy  = data.aws_iam_policy_document.instance_assume_role_policy.json
   managed_policy_arns = [data.aws_iam_policy.ssm_policy.arn]
 

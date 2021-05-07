@@ -1,5 +1,5 @@
 resource "aws_acm_certificate" "cert" {
-  domain_name       = "www.${data.aws_route53_zone.r53_zone.name}"
+  domain_name       = "${var.prefix}.${data.aws_route53_zone.r53_zone.name}"
   validation_method = "DNS"
 
   tags = var.tags
@@ -9,9 +9,9 @@ resource "aws_acm_certificate" "cert" {
   }
 }
 
-resource "aws_route53_record" "www" {
+resource "aws_route53_record" "record" {
   zone_id = data.aws_route53_zone.r53_zone.zone_id
-  name    = "www.${data.aws_route53_zone.r53_zone.name}"
+  name    = "${var.prefix}.${data.aws_route53_zone.r53_zone.name}"
   type    = "CNAME"
   ttl     = "300"
   records = [ aws_alb.rearc_quest_ecs_lb.dns_name ]
