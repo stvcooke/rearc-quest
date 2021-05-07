@@ -70,6 +70,7 @@ cp ecs/main.tf ecs_main.tf.bk
 # replace lines with remote state hardcode
 sed -i "10s/.*/    bucket = \"${STATE_BUCKET}\"/" ecs/main.tf
 sed -i "12s/.*/    dynamodb_table = \"${STATE_DYNAMODB}\"/" ecs/main.tf
+sed -i "13s/.*/    region = \"${REGION}\"/" ecs/main.tf
 
 cd ecs
 terraform init
@@ -77,7 +78,8 @@ terraform init
 terraform apply -auto-approve \
   -var "prefix=${STACK_PREFIX}" \
   -var "image_tag=${STACK_PREFIX}" \
-  -var "domain=${DOMAIN}"
+  -var "domain=${DOMAIN}" \
+  -var "aws_region=${REGION}"
 
 cd ..
 mv ecs_main.tf.bk ecs/main.tf
