@@ -2,6 +2,8 @@
 
 I have shortened the README to only contain the request and fulfillment criteria, and some explanations on what I've done.
 
+Please see http://quest.kindcarp.com for pre-secret, and https://quest.kindcarp.com for post-secret, post-tls.
+
 ### Q. What do i have to do ?
 #####   1) Deploy the app in AWS and find the secret page. Use Linux 64-bit as your OS (Amazon Linux preferred)
 #####   2) Deploy the app in a Docker container. Use `node:10` as the base image
