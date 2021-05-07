@@ -7,9 +7,9 @@ terraform {
   }
 
   backend "s3" {
-    bucket = "rearc-quest-infra-tf-state"
+    bucket = "quest-remote-state-tf-state"
     key = "rearc-quest/prod/quest"
-    dynamodb_table = "rearc-quest-infra-tf-state-locking"
+    dynamodb_table = "quest-remote-state-tf-state-locking"
     region = "us-east-2"
   }
 }
