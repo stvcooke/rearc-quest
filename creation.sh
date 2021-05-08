@@ -72,8 +72,13 @@ ECR_REPO=$( \
 )
 
 echo building docker image
+DOCKERFILE="Dockerfile"
+if [[ "$STACK_PREFIX" == *"alpine"* ]]; then
+  DOCKERFILE="Dockerfile-alpine"
+  echo Using alpine dockerfile $DOCKERFILE
+fi
 DOCKER_TAG="${ECR_REPO}:${STACK_PREFIX}"
-docker build -t $DOCKER_TAG .
+docker build -t $DOCKER_TAG -f $DOCKERFILE .
 
 echo logging into ECR to authenticate
 ECR_URL=$( echo $ECR_REPO | awk -F/ '{print $1}' ) ## removes the `/repository` from ECR_REPO
