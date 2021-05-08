@@ -1,0 +1,20 @@
+FROM node:10-alpine
+
+EXPOSE 3000
+
+WORKDIR /app
+
+RUN mkdir /app/bin /app/src && \
+  chown -R guest /app && \
+  ls -alh
+
+COPY --chown=guest:root bin /app/bin/
+
+COPY --chown=guest:root package*.json ./
+RUN npm install
+
+COPY --chown=guest:root src /app/src/
+
+USER guest
+
+CMD ["node", "src/000.js"]
