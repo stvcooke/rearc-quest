@@ -20,7 +20,7 @@ sed -i "13s/.*/    region = \"${REGION}\"/" ecs/main.tf
 cd ecs
 
 ACCESS_LOGS_BUCKET=$( terraform output | grep access_logs_bucket | awk -F\" '{print $2}' | tr -d [[:space:]] )
-ECR_REPO=$( terraform output | grep ecr_url | awk -F\" '{print $2}' | tr -d [[:space:]] )
+ECR_REPO=$( terraform output | grep ecr_url | awk -F\" '{print $2}' | awk -F/ '{print $2}' |tr -d [[:space:]] )
 
 echo deleting access logs bucket
 # empty access logs bucket so can be deleted in terraform destroy
