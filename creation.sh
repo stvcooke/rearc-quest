@@ -22,7 +22,7 @@ echo create empty ecr stack
   --template-body file://cloudformation/empty-stack.yaml \
   --region $REGION
 
-echo create empty remoet state stack
+echo create empty remote state stack
 /usr/bin/aws cloudformation create-stack \
   --stack-name "${STACK_PREFIX}-remote-state" \
   --template-body file://cloudformation/empty-stack.yaml \
@@ -90,9 +90,9 @@ docker image push $DOCKER_TAG
 echo copying ecs/main.tf then updating backend from cloudformation
 cp ecs/main.tf ecs_main.tf.bk
 # replace lines with remote state hardcode
-sed -i "10s/.*/    bucket = \"${STATE_BUCKET}\"/" ecs/main.tf
-sed -i "12s/.*/    dynamodb_table = \"${STATE_DYNAMODB}\"/" ecs/main.tf
-sed -i "13s/.*/    region = \"${REGION}\"/" ecs/main.tf
+sed -i'' -e "10s/.*/    bucket = \"${STATE_BUCKET}\"/" ecs/main.tf
+sed -i'' -e "12s/.*/    dynamodb_table = \"${STATE_DYNAMODB}\"/" ecs/main.tf
+sed -i'' -e "13s/.*/    region = \"${REGION}\"/" ecs/main.tf
 
 echo top 20 lines of ecs/main.tf for troubleshooting purposes
 head -n 20 ecs/main.tf

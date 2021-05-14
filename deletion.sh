@@ -13,9 +13,9 @@ STATE_DYNAMODB="${STACK_PREFIX}-remote-state-tf-state-locking"
 echo setting up main.tf
 cp ecs/main.tf ecs_main.tf.bk
 # replace lines with remote state hardcode
-sed -i "10s/.*/    bucket = \"${STATE_BUCKET}\"/" ecs/main.tf
-sed -i "12s/.*/    dynamodb_table = \"${STATE_DYNAMODB}\"/" ecs/main.tf
-sed -i "13s/.*/    region = \"${REGION}\"/" ecs/main.tf
+sed -i'' -e "10s/.*/    bucket = \"${STATE_BUCKET}\"/" ecs/main.tf
+sed -i'' -e "12s/.*/    dynamodb_table = \"${STATE_DYNAMODB}\"/" ecs/main.tf
+sed -i'' -e "13s/.*/    region = \"${REGION}\"/" ecs/main.tf
 
 cd ecs
 
