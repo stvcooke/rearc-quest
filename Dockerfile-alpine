@@ -1,17 +1,18 @@
 FROM node:10-alpine
 
+ENV NODE_ENV production
 EXPOSE 3000
 
 WORKDIR /app
 
 RUN mkdir /app/bin /app/src && \
   chown -R guest /app && \
-  ls -alh
+  apk add dumb-init
 
 COPY --chown=guest:root bin /app/bin/
 
 COPY --chown=guest:root package*.json ./
-RUN npm install
+RUN npm ci --only=production
 
 COPY --chown=guest:root src /app/src/
 
