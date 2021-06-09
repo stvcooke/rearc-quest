@@ -57,8 +57,6 @@ resource "aws_security_group" "allow_from_alb" {
     cidr_blocks      = ["0.0.0.0/0"]
     ipv6_cidr_blocks = ["::/0"]
   }
-
-  tags = var.tags
 }
 
 resource "aws_lb_target_group" "ec2_target_group" {
@@ -67,8 +65,6 @@ resource "aws_lb_target_group" "ec2_target_group" {
   protocol    = "HTTP"
   target_type = "instance"
   vpc_id      = var.vpc_id
-
-  tags = var.tags
 }
 
 
@@ -142,8 +138,6 @@ resource "aws_iam_role" "ssm_role" {
   name_prefix         = var.prefix
   assume_role_policy  = data.aws_iam_policy_document.instance_assume_role_policy.json
   managed_policy_arns = [data.aws_iam_policy.ssm_policy.arn]
-
-  tags = var.tags
 }
 
 resource "aws_ssm_activation" "foo" {

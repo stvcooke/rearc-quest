@@ -12,8 +12,6 @@ module "ecs" {
       capacity_provider = "FARGATE_SPOT"
     }
   ]
-
-  tags = var.tags
 }
 
 resource "aws_ecs_task_definition" "rearc_quest_pre_secret_task" {
@@ -40,8 +38,7 @@ DEFINITION
   network_mode             = "awsvpc"
   memory                   = 512
   cpu                      = 256
-  execution_role_arn       = aws_iam_role.ecsTaskExecutionRole.arn
-  tags = var.tags
+  execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
 }
 
 resource "aws_ecs_service" "rearc_quest_pre_secret_service" {
@@ -50,6 +47,10 @@ resource "aws_ecs_service" "rearc_quest_pre_secret_service" {
   task_definition = aws_ecs_task_definition.rearc_quest_pre_secret_task.arn
   launch_type     = "FARGATE"
   desired_count   = 1
+
+  service_registries {
+    registry_arn   = aws_service_discovery_service.discovery_service.arn
+  }
 
   network_configuration {
     subnets          = [ data.aws_subnet.private_subnet.id ]
@@ -62,11 +63,9 @@ resource "aws_ecs_service" "rearc_quest_pre_secret_service" {
     container_name   = aws_ecs_task_definition.rearc_quest_pre_secret_task.family
     container_port   = 3000 # The container port
   }
-
-  tags = var.tags
 }
 
-resource "aws_iam_role" "ecsTaskExecutionRole" {
+resource "aws_iam_role" "ecs_task_execution_role" {
   name_prefix        = var.prefix
   assume_role_policy = data.aws_iam_policy_document.assume_role_policy.json
 }
@@ -82,8 +81,8 @@ data "aws_iam_policy_document" "assume_role_policy" {
   }
 }
 
-resource "aws_iam_role_policy_attachment" "ecsTaskExecutionRole_policy" {
-  role       = aws_iam_role.ecsTaskExecutionRole.name
+resource "aws_iam_role_policy_attachment" "ecs_task_execution_role_policy" {
+  role       = aws_iam_role.ecs_task_execution_role.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
@@ -117,8 +116,7 @@ DEFINITION
   network_mode             = "awsvpc"
   memory                   = 512
   cpu                      = 256
-  execution_role_arn       = aws_iam_role.ecsTaskExecutionRole.arn
-  tags = var.tags
+  execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
 }
 
 resource "aws_ecs_service" "rearc_quest_post_secret_service" {
@@ -127,6 +125,10 @@ resource "aws_ecs_service" "rearc_quest_post_secret_service" {
   task_definition = aws_ecs_task_definition.rearc_quest_post_secret_task.arn
   launch_type     = "FARGATE"
   desired_count   = 1
+
+  service_registries {
+    registry_arn   = aws_service_discovery_service.discovery_service.arn
+  }
 
   network_configuration {
     subnets          = [ data.aws_subnet.private_subnet.id ]
@@ -139,6 +141,4 @@ resource "aws_ecs_service" "rearc_quest_post_secret_service" {
     container_name   = aws_ecs_task_definition.rearc_quest_post_secret_task.family
     container_port   = 3000 # The container port
   }
-
-  tags = var.tags
 }

@@ -120,8 +120,6 @@ resource "aws_s3_bucket" "access_logs" {
       }
     }
   }
-
-  tags = var.tags
 }
 
 resource "aws_s3_bucket_policy" "access_logs_policy" {

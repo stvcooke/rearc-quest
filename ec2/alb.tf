@@ -1,8 +1,6 @@
 resource "aws_eip" "alb_ip" {
   vpc              = true
   public_ipv4_pool = "amazon"
-
-  tags = var.tags
 }
 
 resource "aws_lb" "rearc_quest_alb" {
@@ -21,7 +19,6 @@ resource "aws_lb" "rearc_quest_alb" {
   }
 
   # checkov:skip=CKV_AWS_150:Allowing for easy delete
-  tags = var.tags
 
   depends_on = [ aws_s3_bucket_policy.access_logs_policy ]
 }
@@ -47,8 +44,6 @@ resource "aws_security_group" "allow_tls" {
     cidr_blocks      = ["0.0.0.0/0"]
     ipv6_cidr_blocks = ["::/0"]
   }
-
-  tags = var.tags
 }
 
 resource "aws_s3_bucket" "access_logs" {
@@ -69,7 +64,6 @@ resource "aws_s3_bucket" "access_logs" {
   # checkov:skip=CKV_AWS_52:Not doing mfa delete so I can delete this easier later
   # checkov:skip=CKV_AWS_144:Not enabling cross-region because we don't care so much about logs
   # checkov:skip=CKV_AWS_145:Not encrypting with KMS
-  tags = var.tags
 }
 
 resource "aws_s3_bucket_policy" "access_logs_policy" {
@@ -126,8 +120,6 @@ resource "aws_iam_server_certificate" "alb_cert" {
   certificate_body = file("${path.module}/keys/cert.pem")
   # tflint-ignore: aws_iam_server_certificate_invalid_private_key
   private_key      = file("${path.module}/keys/key.pem")
-
-  tags = var.tags
 }
 
 resource "aws_lb_listener" "ec2_section" {

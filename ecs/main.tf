@@ -16,6 +16,8 @@ terraform {
 
 provider "aws" {
   region = var.aws_region
+
+  default_tags = var.tags
 }
 
 data "aws_elb_service_account" "main" {}
